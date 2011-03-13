@@ -77,7 +77,7 @@ def reset_myEvent() :
             'picture_url' : '' ,
             'fk_category' : '' ,
             }
-myEvents = []
+myEvents = {}
 url = 'http://www.myswitzerland.com/fr/event_calendar/event_display_int.cfm?event_id='
 for e in eventids:
     print( "Extracting event id : " + e )
@@ -150,7 +150,7 @@ for e in eventids:
     #page    = urllib.request.urlopen( ical )
     #content = str( page.read(), 'utf-8' )
     #print( content ) 
-    myEvents.append( myE )
+    myEvents[ len(myEvents) + 1 ] =  myE
 
 # fourth step
 # sending the mails : one email for every events
@@ -161,7 +161,7 @@ text             = ''
 text            += '<html>\n<head>\n<title>New event</title>\n</head>\n<body>\n'
 text            += 'Email de validation des events depuis myswitzerland.com<br/>\n'
 text            += "<form method='post' action='http://www.suisseevents.ch/inject.php'>\n"
-for num in myEvents:
+for num in myE:
     event        = myE[ num ]
     eid          = 'myswitzerlandcom'
     text        += "<table border='1' style='width: 100%'>\n"
