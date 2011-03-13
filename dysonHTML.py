@@ -25,19 +25,35 @@ content = str( page.read( ) , 'utf-8')
 # first step : extracting the max number of pages
 pns     = content.split( "&pn=" )
 nums    = 11
-for p in pns[ 2:-1 ]:
+for p in pns[ 1:-1 ]:
     if int( p.split( '">' ) [ 0 ] ) > nums :
         nums = int( p.split( '">' ) [ 0 ] )
-print( nums )
+print( "Number of events for this month : " + str( nums )  )
 
-pages   = range( 1, nums + 1 , 10 )
-print( pages ) 
 #second step : for every pages extracting the events id
-
-
-
+pages   = range( 1, nums + 1 , 10 )
+#print( str( pages ) )
+eventids = []
+url += "&pn="
+for p in pages:
+    print( "Extracting events id on the page " + str( p ) + ": " )
+    page    = urllib.request.urlopen( url + str( p ) )
+    content = str( page.read() , 'utf-8' )
+    parts = content.split( 'event_display_int.cfm?event_id=' )
+    for p in parts[ 1 : -1 ]:
+        eventid= p.split( '"')[ 0 ]
+        if eventid not in eventids:
+            eventids.append( eventid ) 
+            print( eventid )
+        
 # third step : for every event id searching the page
-
+url = 'http://www.myswitzerland.com/fr/event_calendar/event_display_int.cfm?event_id='
+for e in eventids:
+    print( "Extracting event id : " + e )
+    page = urllib.request.urlopen( url + e )
+    content = str( page.read(), 'utf-8' )
+    
+    
 dyson = """
 **********************************************************************
 
