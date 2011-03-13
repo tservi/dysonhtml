@@ -19,6 +19,7 @@ day     =   "{0}".format( now.strftime( "%d" ) )
 month   =   "{0}".format( now.strftime( "%m" ) ) 
 #print( day + ' - ' + month )
 url     = 'http://www.myswitzerland.com/fr/event_calendar/event_results.cfm?e_day=' + day + '&&zeitraum=30&e_month=' + month
+url     = 'http://www.myswitzerland.com/fr/event_calendar/event_results.cfm?e_day=' + day + '&region=013&zeitraum=1&e_month=' + month
 page    = urllib.request.urlopen( url )
 content = str( page.read( ) , 'utf-8')
 
@@ -44,16 +45,53 @@ for p in pages:
         eventid = p.split( '"')[ 0 ]
         if eventid not in eventids:
             eventids.append( eventid ) 
-            print( eventid )
+            print( "   -> Event id : " + eventid )
         
 # third step : for every event id searching the page
+def reset_myEvent() :
+    return { 'event_id' : '' ,
+            'title_fr' : '' ,
+            'title_de' : '' ,
+            'title_it' : '' ,
+            'title_en' : '' ,
+            'description_fr' : '' ,
+            'description_de' : '' ,
+            'description_it' : '' ,
+            'description_en' : '' ,
+            'date_from' : '' ,
+            'date_to' : '' ,
+            'time_from' : '' ,
+            'time_to' : '' ,
+            'additionnal_info_fr' : '' ,
+            'additionnal_info_de' : '' ,
+            'additionnal_info_it' : '' ,
+            'additionnal_info_en' : '' ,
+            'locality' : '',
+            'street' : '' ,
+            'address_info' : '' ,
+            'price_from' : '' ,
+            'price_to' : '' ,
+            'phone' : '',
+            'fax' : '' ,
+            'url' : '' ,
+            'email' : '' ,
+            'yearly' : '' ,
+            'picture_url' : '' ,
+            'fk_category' : '' ,
+            }
+myEvents = []
 url = 'http://www.myswitzerland.com/fr/event_calendar/event_display_int.cfm?event_id='
 for e in eventids:
     print( "Extracting event id : " + e )
     page    = urllib.request.urlopen( url + e )
     content = str( page.read(), 'utf-8' )
-    
-    
+    myE     = reset_myEvent()
+    myE[ 'event_id' ] = e
+    myE[ 'title_fr' ] = content.split( '<h1>' )[ 1 ] . split(' </h1' )[ 0 ] 
+    #myE[ 'locality' ] = content.split( '<h2>' )[ 1 ] . split(' </h2' )[ 0 ]
+    myEvents.append( myE )
+
+print( myEvents )
 dyson = """
 **********************************************************************
 
