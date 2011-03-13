@@ -39,9 +39,9 @@ for p in pages:
     print( "Extracting events id on the page " + str( p ) + ": " )
     page    = urllib.request.urlopen( url + str( p ) )
     content = str( page.read() , 'utf-8' )
-    parts = content.split( 'event_display_int.cfm?event_id=' )
+    parts   = content.split( 'event_display_int.cfm?event_id=' )
     for p in parts[ 1 : -1 ]:
-        eventid= p.split( '"')[ 0 ]
+        eventid = p.split( '"')[ 0 ]
         if eventid not in eventids:
             eventids.append( eventid ) 
             print( eventid )
@@ -50,7 +50,7 @@ for p in pages:
 url = 'http://www.myswitzerland.com/fr/event_calendar/event_display_int.cfm?event_id='
 for e in eventids:
     print( "Extracting event id : " + e )
-    page = urllib.request.urlopen( url + e )
+    page    = urllib.request.urlopen( url + e )
     content = str( page.read(), 'utf-8' )
     
     
