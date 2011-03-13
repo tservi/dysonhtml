@@ -77,7 +77,7 @@ def reset_myEvent() :
             'picture_url' : '' ,
             'fk_category' : '' ,
             }
-myEvents = {}
+myEvents = []
 url = 'http://www.myswitzerland.com/fr/event_calendar/event_display_int.cfm?event_id='
 for e in eventids:
     print( "Extracting event id : " + e )
@@ -150,7 +150,7 @@ for e in eventids:
     #page    = urllib.request.urlopen( ical )
     #content = str( page.read(), 'utf-8' )
     #print( content ) 
-    myEvents[ len(myEvents) + 1 ] =  myE
+    myEvents.append( myE )
 
 # fourth step
 # sending the mails : one email for every events
@@ -161,8 +161,8 @@ text             = ''
 text            += '<html>\n<head>\n<title>New event</title>\n</head>\n<body>\n'
 text            += 'Email de validation des events depuis myswitzerland.com<br/>\n'
 text            += "<form method='post' action='http://www.suisseevents.ch/inject.php'>\n"
-for num in myE:
-    event        = myE[ num ]
+for e in myEvents:
+    event        = e
     eid          = 'myswitzerlandcom'
     text        += "<table border='1' style='width: 100%'>\n"
     text        += "<tr>\n"
@@ -170,6 +170,8 @@ for num in myE:
     if 'event_id' in event:
         text    += event[ 'event_id' ]
         eid     += event[ 'event_id' ]
+    #print ( event  )
+    #print ( "=====================================================================================================" ) 
     text    += "<input type='hidden' name='event_id[]' value='" + eid + "' />"
     text        += "</td>"
     text        += "<td> "
@@ -245,12 +247,13 @@ msg['From']      = "info@t-servi.com"
 msg['Reply-to']  = "info@t-servi.com"
 msg['To']        = "aeschlimann.charles@gmail.com"
 #print( msg )
+
 s                = smtplib.SMTP( "ca-dev.com" )
-#s.set_debuglevel( 1 )
 s.ehlo()
 s.login( user, password )
 s.sendmail( "<info@t-servi.com>" , "<aeschlimann.charles@gmail.com>" ,msg.as_string() )
 s.close()
+
 print ( "Vous devez avoir recu un email dans votre boite au lettre!  ")
 
 #print( myEvents )
