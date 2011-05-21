@@ -4,11 +4,17 @@
 # python 3
 # this is a real python 3 project, take care!
 
+print( "************************* STARTING *****************************************")
+
+
 import urllib.request, urllib.parse, urllib.error
 from email.mime.text import MIMEText
 import smtplib
 import sys, socket
 import datetime
+import random
+import subprocess
+
 
 
 now              = datetime.datetime.today()
@@ -16,8 +22,8 @@ now              = datetime.datetime.today()
 day     =   "{0}".format( now.strftime( "%d" ) )
 month   =   "{0}".format( now.strftime( "%m" ) ) 
 #print( day + ' - ' + month )
-url     = 'http://www.myswitzerland.com/fr/event_calendar/event_results.cfm?e_day=' + day + '&&zeitraum=30&e_month=' + month
-url     = 'http://www.myswitzerland.com/fr/event_calendar/event_results.cfm?e_day=' + day + '&region=013&zeitraum=1&e_month=' + month
+url     = 'http://www.myswitzerland.com/fr/event_calendar/event_results.cfm?e_day=' + day + '&region=013&&zeitraum=1&e_month=' + month
+#url     = 'http://www.myswitzerland.com/fr/event_calendar/event_results.cfm?e_day=' + day + '&region=013&zeitraum=1&e_month=' + month
 page    = urllib.request.urlopen( url )
 content = str( page.read( ) , 'utf-8')
 
@@ -80,77 +86,81 @@ def reset_myEvent() :
 myEvents = []
 url = 'http://www.myswitzerland.com/fr/event_calendar/event_display_int.cfm?event_id='
 for e in eventids:
-    print( "Extracting event id : " + e )
-    page    = urllib.request.urlopen( url + e )
-    content = str( page.read(), 'utf-8' ).replace( '\r\n' , '' ).replace( '\n' , '' ).replace( '\t' , '' )
-    myE     = reset_myEvent()
-    myE[ 'event_id' ] = e
-    title       = content.split( '<h1>')[ 1 ].split( '</h1>' )[ 0 ]
-    print( "  -> Title      : " + title )
-    locality    = content.split( '<h2>')[ 1 ].split( '</h2>' )[ 0 ]
-    print( "  -> Locality   : " + locality )
-    iurl        = ''
-    image       = content.split( '<h2>' )[ 1 ].split( 'class="photo"' )
-    if len( image ) > 1 :
-        iurl    = image[ 0 ].split( 'src="' )[ 1 ] .split ( '"' )[ 0 ] 
-    print( "  -> Image      : " + iurl )
-    description = ''
-    if len( content.split( '<span class="description">' ) ) > 1 : 
-        description = content.split ( '<span class="description">' )[ 1 ].split( '<' )[ 0 ]
-    print( "  -> Description: " + description )
-    myE[ 'title_fr' ]       = title
-    myE[ 'locality' ]       = locality
-    myE[ 'picture_url']     = iurl
-    myE[ 'description_fr']  = description
-    myE[ 'fk_category' ]    = 'J'
-    dating      = content.split( '<span class="dtstart">' )
-    if ( len( dating ) > 1 ) :
-        begin   = dating[ 1 ].split( '<span class="value-title" title="' )[ 1 ].split( '"' )[ 0 ]
-        begindate = begin.split( 'T' )[ 0 ].replace( '-' , '.' )
-        myE[ 'date_from' ]  = begindate
-        print( "  -> Begin      : " + begindate )
-        if( len( begin.split( 'T' ) ) > 1 ):
-            begintime = begin.split( 'T' )[ 1 ].split( '+' )[ 0 ]
-            myE[ 'time_from' ]  = begintime
-            print( "  -> Begin Time : " + begintime )
-    dating      = content.split( '<span class="dtend">' )
-    if ( len( dating ) > 1 ) :
-        end     = dating[ 1 ].split( '<span class="value-title" title="' )[ 1 ].split( '"' )[ 0 ]
-        enddate = begin.split( 'T' )[ 0 ].replace( '-' , '.' )
-        myE[ 'date_to' ]  = enddate
-        print( "  -> End        : " + enddate )
-        if( len( end.split( 'T' ) ) > 1 ):
-            endtime     = end.split( 'T' )[ 1 ].split( '+' )[ 0 ]
-            myE[ 'time_to' ]  = endtime
-            print( "  -> End Time   : " + endtime )
-    addition    = ''
-    site        = ''
-    email       = ''
-    address     = ''
-    phone       = ''
-    if len( content.split( '<div style="position:relative; text-align:left; background-color:#DDEAE6;">' ) ) > 1 : 
-        addition    = content.split( '<div style="position:relative; text-align:left; background-color:#DDEAE6;">' )[ 1 ]
-        if ( len( addition.split( '<font color="#336666">URL:</font>' ) ) > 1 ) :
-            site            = addition.split( '<font color="#336666">URL:</font>' )[ 1 ].split( '<a href="' )[ 1 ].split( '"' )[ 0 ]
-            myE[ 'url' ]    = site
-            print( "  -> Url        : " + site )
-        if ( len( addition.split( '<font color="#336666">E-mail:</font>' ) ) > 1 ) :
-            email           = addition.split( '<font color="#336666">E-mail:</font>' )[ 1 ].split( '<div class="popRight2">' )[ 1 ].split( '</div>' )[ 0 ]
-            myE[ 'email' ]  = email
-            print( "  -> Email      : " + email )
-        if ( len( addition.split( '<font color="#336666">Route:</font>' ) ) > 1 ) :
-            address         = addition.split( '<font color="#336666">Route:</font>' )[ 1 ].split( '<div class="popRight2">' )[ 1 ].split( '</div>' )[ 0 ]
-            myE[ 'address_info' ]= address
-            print( "  -> Address    : " + address )
-        if ( len( addition.split( '<font color="#336666">Téléphone:</font>' ) ) > 1 ) :
-            phone           = addition.split( '<font color="#336666">Téléphone:</font>' )[ 1 ].split( '<div class="popRight2">' )[ 1 ].split( '</div>' )[ 0 ]
-            myE[ 'phone' ]  = phone
-            print( "  -> Phone      : " + phone )
-    #ical    = 'http://vk.stnet.ch/objects/events/event_' + e + '/ical_de.ics'
-    #page    = urllib.request.urlopen( ical )
-    #content = str( page.read(), 'utf-8' )
-    #print( content ) 
-    myEvents.append( myE )
+    try:
+        print( "Extracting event id : " + e )
+        page    = urllib.request.urlopen( url + e )
+        content = str( page.read(), 'utf-8' ).replace( '\r\n' , '' ).replace( '\n' , '' ).replace( '\t' , '' )
+        myE     = reset_myEvent()
+        myE[ 'event_id' ] = e
+        title       = content.split( '<h1>')[ 1 ].split( '</h1>' )[ 0 ]
+        print( "  -> Title      : " + title )
+        locality    = content.split( '<h2>')[ 1 ].split( '</h2>' )[ 0 ]
+        print( "  -> Locality   : " + locality )
+        iurl        = ''
+        image       = content.split( '<h2>' )[ 1 ].split( 'class="photo"' )
+        if len( image ) > 1 :
+            iurl    = image[ 0 ].split( 'src="' )[ 1 ] .split ( '"' )[ 0 ] 
+        print( "  -> Image      : " + iurl )
+        description = ''
+        if len( content.split( '<span class="description">' ) ) > 1 : 
+            description = content.split ( '<span class="description">' )[ 1 ].split( '<' )[ 0 ]
+        print( "  -> Description: " + description )
+        myE[ 'title_fr' ]       = title
+        myE[ 'locality' ]       = locality
+        myE[ 'picture_url']     = iurl
+        myE[ 'description_fr']  = description
+        myE[ 'fk_category' ]    = 'J'
+        dating      = content.split( '<span class="dtstart">' )
+        if ( len( dating ) > 1 ) :
+            begin   = dating[ 1 ].split( '<span class="value-title" title="' )[ 1 ].split( '"' )[ 0 ]
+            begindate = begin.split( 'T' )[ 0 ].replace( '-' , '.' )
+            myE[ 'date_from' ]  = begindate
+            print( "  -> Begin      : " + begindate )
+            if( len( begin.split( 'T' ) ) > 1 ):
+                begintime = begin.split( 'T' )[ 1 ].split( '+' )[ 0 ]
+                myE[ 'time_from' ]  = begintime
+                print( "  -> Begin Time : " + begintime )
+        dating      = content.split( '<span class="dtend">' )
+        if ( len( dating ) > 1 ) :
+            end     = dating[ 1 ].split( '<span class="value-title" title="' )[ 1 ].split( '"' )[ 0 ]
+            enddate = begin.split( 'T' )[ 0 ].replace( '-' , '.' )
+            myE[ 'date_to' ]  = enddate
+            print( "  -> End        : " + enddate )
+            if( len( end.split( 'T' ) ) > 1 ):
+                endtime     = end.split( 'T' )[ 1 ].split( '+' )[ 0 ]
+                myE[ 'time_to' ]  = endtime
+                print( "  -> End Time   : " + endtime )
+        addition    = ''
+        site        = ''
+        email       = ''
+        address     = ''
+        phone       = ''
+        if len( content.split( '<div style="position:relative; text-align:left; background-color:#DDEAE6;">' ) ) > 1 : 
+            addition    = content.split( '<div style="position:relative; text-align:left; background-color:#DDEAE6;">' )[ 1 ]
+            if ( len( addition.split( '<font color="#336666">URL:</font>' ) ) > 1 ) :
+                site            = addition.split( '<font color="#336666">URL:</font>' )[ 1 ].split( '<a href="' )[ 1 ].split( '"' )[ 0 ]
+                myE[ 'url' ]    = site
+                print( "  -> Url        : " + site )
+            if ( len( addition.split( '<font color="#336666">E-mail:</font>' ) ) > 1 ) :
+                email           = addition.split( '<font color="#336666">E-mail:</font>' )[ 1 ].split( '<div class="popRight2">' )[ 1 ].split( '</div>' )[ 0 ]
+                myE[ 'email' ]  = email
+                print( "  -> Email      : " + email )
+            if ( len( addition.split( '<font color="#336666">Route:</font>' ) ) > 1 ) :
+                address         = addition.split( '<font color="#336666">Route:</font>' )[ 1 ].split( '<div class="popRight2">' )[ 1 ].split( '</div>' )[ 0 ]
+                myE[ 'address_info' ]= address
+                print( "  -> Address    : " + address )
+            if ( len( addition.split( '<font color="#336666">Telephone:</font>' ) ) > 1 ) :
+                phone           = addition.split( '<font color="#336666">Telephone:</font>' )[ 1 ].split( '<div class="popRight2">' )[ 1 ].split( '</div>' )[ 0 ]
+                myE[ 'phone' ]  = phone
+                print( "  -> Phone      : " + phone )
+        #ical    = 'http://vk.stnet.ch/objects/events/event_' + e + '/ical_de.ics'
+        #page    = urllib.request.urlopen( ical )
+        #content = str( page.read(), 'utf-8' )
+        #print( content ) 
+        myEvents.append( myE )
+    except:
+        pass
+    
 
 # fourth step
 # sending the mails : one email for every events
@@ -158,12 +168,13 @@ for e in eventids:
 user             = ''
 password         = ''
 text             = ''
-text            += '<html>\n<head>\n<title>New event</title>\n</head>\n<body>\n'
-text            += 'Email de validation des events depuis myswitzerland.com<br/>\n'
-text            += "<form method='post' action='http://www.suisseevents.ch/inject.php'>\n"
+text            += '<html>\n<head>\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n<title>New event</title>\n</head>\n<body>\n'
+text            += 'Validation des events depuis myswitzerland.com<br/>\n'
+
 for e in myEvents:
     event        = e
     eid          = 'myswitzerlandcom'
+    text        += "<form method='post' action='http://www.suisseevents.ch/inject.php' target='_blank'>\n"
     text        += "<table border='1' style='width: 100%'>\n"
     text        += "<tr>\n"
     text        += "<td> "
@@ -235,10 +246,20 @@ for e in myEvents:
             text += "</td>\n"
             text += "</tr>\n"
     
-    text        += "<tr><td colspan='5'><input type='submit' value='injecter dans suisseevents.ch'></td></tr>\n"
+    text        += "<tr><td colspan='5'><input type='submit' value='injecter dans suisseevents.ch' onclick='letsgo();'></td></tr>\n"
     text        += "</table>\n"
+    text        += "</form>\n"
     text        += "<br/><br/>\n"
-text        += "</form>\n"
+text            += "<script>\n"
+text            += 'function letsgo(){\n'
+text            += "//self.alert( 'Hello!' );"
+text            += "forms=document.getElementsById('FORM');\n"
+text            += "for( var i = 0 ; i < forms.length ; i++ ){\n"
+text            += "forms[ i ].style.display = 'none';\n"
+text            += "forms[ i ].submit();\n"
+text            += "}\n"
+text            += '}\n'
+text            += "</script>\n"
 text            += '</body>\n'
 msg              = MIMEText( text, 'html', 'UTF-8')
 now              = datetime.datetime.today()
@@ -248,15 +269,29 @@ msg['Reply-to']  = "info@t-servi.com"
 msg['To']        = "aeschlimann.charles@gmail.com"
 #print( msg )
 
-s                = smtplib.SMTP( "ca-dev.com" )
-s.ehlo()
-s.login( user, password )
-s.sendmail( "<info@t-servi.com>" , "<aeschlimann.charles@gmail.com>" ,msg.as_string() )
-s.close()
+#s                = smtplib.SMTP( "ca-dev.com" )
+#s.ehlo()
+#s.login( user, password )
+#s.sendmail( "<info@t-servi.com>" , "<aeschlimann.charles@gmail.com>" ,msg.as_string() )
+#s.close()
 
-print ( "Vous devez avoir recu un email dans votre boite au lettre!  ")
+#print ( "Vous devez avoir recu un email dans votre boite au lettre!  ")
 
 #print( myEvents )
+
+path    = "C:\\Users\\Charles\\Documents\\Desktop\\Conseiller-web\\dysonHTML\\evenements\\"
+now     = str( datetime.datetime.now() ).replace( " ", "_").replace( ":" , '_').replace( "." , "_" )
+ran     = str( random.randint ( 10 , 99 ) )
+fpath   = path + now + "___" + ran + ".html"  
+a_file  = open( fpath , "w+" , encoding='utf-8')
+a_file.write( text )
+a_file.close()
+#thanks to this article : http://stackoverflow.com/questions/5087302/running-three-commands-in-the-same-process-with-python
+chrome = 'C:\\Users\\Charles\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'
+cmdline = 'cmd.exe /C "' + chrome + ' ' + fpath + '' + '"'
+print( cmdline )
+cmd = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
 dyson = """
 **********************************************************************
 
